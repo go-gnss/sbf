@@ -1,7 +1,10 @@
 package sbf
 
 import (
+	"bufio"
 	"bytes"
+	"io"
+	"os"
 	"reflect"
 	"testing"
 )
@@ -29,13 +32,33 @@ var (
 )
 
 func TestReadBlock(t *testing.T) {
-	block, err := ReadBlock(bytes.NewReader(bin4020))
+	block, err := ReadBlock(bufio.NewReader(bytes.NewReader(bin4020)))
 	if err != nil {
 		t.Fatal("error in ReadBlock function:", err)
 	}
 
 	if !reflect.DeepEqual(block, block4020) {
 		t.Fatalf("parsed block does not match expected result: %+v", block)
+	}
+}
+
+func TestReadBlocksFromFile(t *testing.T) {
+	file, err := os.Open("./fixtures/multiple4020.sbf")
+	if err != nil {
+		t.Fatal("error opening test data file:", err)
+	}
+
+	r := bufio.NewReader(file)
+	// TODO: this just checks that 9 blocks were found, add check for content
+	for i := 0; i != 9; i++ {
+		_, err := ReadBlock(r)
+		if err != nil {
+			t.Fatal("error in ReadBlock function:", err)
+		}
+	}
+
+	if _, err = ReadBlock(r); err != io.EOF {
+		t.Fatal("expected EOF error, received:", err)
 	}
 }
 

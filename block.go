@@ -3,7 +3,6 @@ package sbf
 import (
 	"bufio"
 	"encoding/binary"
-	"io"
 )
 
 type Block struct {
@@ -15,23 +14,17 @@ type Block struct {
 }
 
 // Reads from reader until a valid SBF Block is found (based on Block sync bits - not calculating CRC)
-func ReadBlock(reader io.Reader) (block Block, err error) {
-	r := bufio.NewReader(reader)
-
-	// TODO: Should we skip bytes like this, or just return err if first two bytes are not '$@'?
-	// 	Could return an error and leave it up to the invoker to track skipped bytes
-	//  Would we peek or read?
+func ReadBlock(r *bufio.Reader) (block Block, err error) {
+	// TODO: Should we skip bytes like this, or just return err if first two bytes are not '$@'
+	//  or should we leave it and return skipped bytes?
 	if _, err = r.ReadBytes('$'); err != nil {
 		return block, err
 	}
 
-	b, err := r.ReadByte()
-	if err != nil {
+	if b, err := r.ReadByte(); err != nil {
 		return block, err
-	}
-
-	if b != byte('@') {
-		return ReadBlock(reader) // This does seem strange - see above TODO
+	} else if b != byte('@') {
+		return ReadBlock(r) // This does seem strange - see above TODO
 	}
 
 	if err := binary.Read(r, binary.LittleEndian, &block.CRC); err != nil {
