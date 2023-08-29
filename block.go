@@ -7,10 +7,18 @@ import (
 
 type Block struct {
 	// Sync int16 // "$@" or 0x24,0x40
-	CRC    uint16 // Computed for ID+Length+Data as []byte
+	CRC uint16 // Computed for ID+Length+Data as []byte
+	// ID & 0x1FFF is Block Number, ID & 0xE000 is Block Revision Number
+	// TODO: Implement some type which handles the above
 	ID     uint16
-	Length uint16 // multiple of 4
+	Length uint16 // must be a multiple of 4
 	Data   []byte // Length-8 bytes
+}
+
+// TODO: Should this be a method of Block, or just a function which takes Block?
+func (b Block) CalculateCRC() uint16 {
+	// CRC does not include the block sync bits or the CRC field itself
+	return CRCCCITT(SerializeBlock(b)[4:])
 }
 
 // Reads from reader until a valid SBF Block is found (based on Block sync bits - not calculating CRC)
@@ -43,4 +51,14 @@ func ReadBlock(r *bufio.Reader) (block Block, err error) {
 	_, err = r.Read(block.Data)
 
 	return block, err
+}
+
+func SerializeBlock(block Block) []byte {
+	data := []byte{
+		'$', '@',
+		byte(block.CRC), byte(block.CRC >> 8),
+		byte(block.ID), byte(block.ID >> 8),
+		byte(block.Length), byte(block.Length >> 8),
+	}
+	return append(data, block.Data...)
 }

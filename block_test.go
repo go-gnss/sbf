@@ -10,10 +10,10 @@ import (
 )
 
 var (
-	// Block ID 4020, GeoRAWL1 message from SVID 122 SouthPAN - Note, CRC might be incorrect
-	bin4020   = []byte{'$', '@', 86, 148, 180, 15, 52, 0, 216, 116, 117, 11, 228, 8, 122, 1, 0, 24, 0, 26, 0, 0, 18, 83, 254, 239, 63, 0, 63, 254, 239, 255, 0, 0, 0, 224, 0, 0, 0, 0, 187, 185, 3, 0, 0, 0, 128, 163, 192, 47, 5, 20}
+	// Block ID 4020, GeoRAWL1 message from SVID 122 SouthPAN
+	bin4020   = []byte{'$', '@', 148, 86, 180, 15, 52, 0, 216, 116, 117, 11, 228, 8, 122, 1, 0, 24, 0, 26, 0, 0, 18, 83, 254, 239, 63, 0, 63, 254, 239, 255, 0, 0, 0, 224, 0, 0, 0, 0, 187, 185, 3, 0, 0, 0, 128, 163, 192, 47, 5, 20}
 	block4020 = Block{
-		CRC:    37974,
+		CRC:    22164,
 		ID:     4020,
 		Length: 52,
 		Data:   []byte{216, 116, 117, 11, 228, 8, 122, 1, 0, 24, 0, 26, 0, 0, 18, 83, 254, 239, 63, 0, 63, 254, 239, 255, 0, 0, 0, 224, 0, 0, 0, 0, 187, 185, 3, 0, 0, 0, 128, 163, 192, 47, 5, 20},
@@ -39,6 +39,16 @@ func TestReadBlock(t *testing.T) {
 
 	if !reflect.DeepEqual(block, block4020) {
 		t.Fatalf("parsed block does not match expected result: %+v", block)
+	}
+
+	// TODO: Move these two to their own test functions
+
+	if !reflect.DeepEqual(SerializeBlock(block), bin4020) {
+		t.Fatal("serialized block does not match expected result")
+	}
+
+	if crc := block.CalculateCRC(); crc != block4020.CRC {
+		t.Fatalf("calculated CRC does not equal expected value: %d", crc)
 	}
 }
 
