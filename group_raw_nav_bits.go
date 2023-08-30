@@ -42,6 +42,7 @@ func deserializeBlockGEORaw(block Block) (GEORaw, error) {
 			binary.LittleEndian.Uint32(block.Data[36:40]),
 			binary.LittleEndian.Uint32(block.Data[40:44]),
 		},
+		// Padding: []byte{block.Data[44:]},
 	}, nil
 }
 
