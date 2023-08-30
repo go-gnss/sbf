@@ -3,6 +3,7 @@ package sbf
 import (
 	"bufio"
 	"encoding/binary"
+	"io"
 )
 
 type Block struct {
@@ -48,7 +49,7 @@ func ReadBlock(r *bufio.Reader) (block Block, err error) {
 	}
 
 	block.Data = make([]byte, block.Length-8)
-	_, err = r.Read(block.Data)
+	_, err = io.ReadAtLeast(r, block.Data, int(block.Length-8))
 
 	return block, err
 }
