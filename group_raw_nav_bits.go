@@ -1,6 +1,7 @@
 package sbf
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 )
@@ -19,31 +20,13 @@ type GEORaw struct {
 	// Padding ?
 }
 
-func deserializeBlockGEORaw(block Block) (GEORaw, error) {
+func deserializeBlockGEORaw(block Block) (gr GEORaw, err error) {
 	if len(block.Data) < 44 {
 		return GEORaw{}, fmt.Errorf("block length less than minimum for block type")
 	}
-	return GEORaw{
-		TOW:        binary.LittleEndian.Uint32(block.Data[:4]),
-		WNc:        binary.LittleEndian.Uint16(block.Data[4:6]),
-		SVID:       uint8(block.Data[6]),
-		CRCPassed:  uint8(block.Data[7]),
-		ViterbiCnt: uint8(block.Data[8]),
-		Source:     uint8(block.Data[9]),
-		FreqNr:     uint8(block.Data[10]),
-		RxChannel:  uint8(block.Data[11]),
-		NAVBits: [8]uint32{
-			binary.LittleEndian.Uint32(block.Data[12:16]),
-			binary.LittleEndian.Uint32(block.Data[16:20]),
-			binary.LittleEndian.Uint32(block.Data[20:24]),
-			binary.LittleEndian.Uint32(block.Data[24:28]),
-			binary.LittleEndian.Uint32(block.Data[28:32]),
-			binary.LittleEndian.Uint32(block.Data[32:36]),
-			binary.LittleEndian.Uint32(block.Data[36:40]),
-			binary.LittleEndian.Uint32(block.Data[40:44]),
-		},
-		// Padding: []byte{block.Data[44:]},
-	}, nil
+
+	err = binary.Read(bytes.NewReader(block.Data), binary.LittleEndian, &gr)
+	return gr, err
 }
 
 type GEORawL1 GEORaw // Block ID 4020
