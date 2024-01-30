@@ -7,10 +7,8 @@ import (
 )
 
 type Block struct {
-	// Sync int16 // "$@" or 0x24,0x40
-	CRC uint16 // Computed for ID+Length+Data as []byte
-	// ID & 0x1FFF is Block Number, ID & 0xE000 is Block Revision Number
-	// TODO: Implement some type which handles the above
+	// Sync [2]rune // "$@" or 0x24,0x40
+	CRC    uint16 // Computed for ID+Length+Data as []byte
 	ID     uint16
 	Length uint16 // must be a multiple of 4
 	Data   []byte // Length-8 bytes
@@ -20,6 +18,14 @@ type Block struct {
 func (b Block) CalculateCRC() uint16 {
 	// CRC does not include the block sync bits or the CRC field itself
 	return CRCCCITT(SerializeBlock(b)[4:])
+}
+
+func (b Block) BlockNumber() uint16 {
+	return b.ID & 0x1FFF
+}
+
+func (b Block) RevisionNumber() uint16 {
+	return b.ID >> 13
 }
 
 // Reads from reader until a valid SBF Block is found (based on Block sync bits - not calculating CRC)
